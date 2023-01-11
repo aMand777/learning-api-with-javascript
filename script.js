@@ -1,32 +1,29 @@
-
-
-
-
-
 // Async Await
 
 // Ketika tombol search di-klik
 const searchButton = document.querySelector('.search-button');
 searchButton.addEventListener('click', async function () {
-    const inputKeyword = document.querySelector('.input-keyword');
-    const movies = await getMovies(inputKeyword.value);
-    updateUI(movies);
+    try{
+        const inputKeyword = document.querySelector('.input-keyword');
+        const movies = await getMovies(inputKeyword.value);
+        updateUI(movies);
+        } catch(err) {
+            alert(err);
+        }
 });
 
 // Event binding
-document.addEventListener('click', async function (e){
-    if(e.target.classList.contains('modal-detail-button')) {
-        const imdbid = e.target.dataset.imdbid;
-        const movieDetail = await getMovieDetail(imdbid);
-        updateUIDetail(movieDetail);
+document.addEventListener('click', async function (e) {
+    try{
+        if(e.target.classList.contains('modal-detail-button')) {
+            const imdbid = e.target.dataset.imdbid;
+            const movieDetail = await getMovieDetail(imdbid);
+            updateUIDetail(movieDetail);
+    }
+    } catch(err) {
+        alert(err);
     }
 });
-
-function getMovieDetail(imdbid) {
-    return fetch('http://www.omdbapi.com/?apikey=12de5229&i=' + imdbid)
-        .then(response => response.json())
-        .then(m => m);
-}
 
 function updateUIDetail(m) {
     const movieDetail = showMovieDetail(m);
@@ -34,13 +31,6 @@ function updateUIDetail(m) {
     modalBody.innerHTML = movieDetail;
 }
 
-// Function terpisah
-
-function getMovies(keyword) {
-    return fetch('http://www.omdbapi.com/?apikey=12de5229&s=' + keyword )
-        .then(response => response.json())
-        .then(response => response.Search);
-}
 
 function updateUI(movies) {
     let cards = '';
@@ -48,6 +38,48 @@ function updateUI(movies) {
     const movieContainer = document.querySelector('.movie-container');
     movieContainer.innerHTML = (cards);
 }
+
+
+// function getMovieDetail(imdbid) {
+//     return fetch('http://www.omdbapi.com/?apikey=12de5229&i=' + imdbid)
+//         .then(response => response.json())
+//         .then(m => m);
+// }
+
+
+function getMovieDetail(imdbid) {
+    return fetch('http://www.omdbapi.com/?apikey=12de5229&i=' + imdbid)
+        .then(response => {
+            if(!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+        })
+        .then(response => {
+            if(response.Response === "False") {
+                throw new Error(response.Error);
+            }
+            return response;
+        });
+}
+
+
+function getMovies(keyword) {
+    return fetch('http://www.omdbapi.com/?apikey=12de5229&s=' + keyword )
+        .then(response => {
+            if(!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+        })
+        .then(response => {
+            if(response.Response === "False") {
+                throw new Error(response.Error);
+            }
+            return response.Search;
+        });
+}
+
 
 function showCard (m) {
     return `<div class="col-md-4 my-3">
@@ -61,6 +93,7 @@ function showCard (m) {
         </div>
 </div>`;
 }
+
 
 function showMovieDetail (m) {
     return `<div class="container-fluid">
